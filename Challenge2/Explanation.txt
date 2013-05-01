@@ -1,0 +1,3 @@
+﻿Challenge2, by Roberto Luis Bisbe:
+
+After trying with permutation algorithms and Levenshtein distance, I managed to have a table with hashes that repseent an ordered number of the letters. This way we can have two matching words by their signature, and the lookup operation is O(1).

@@ -1,0 +1,6 @@
+﻿For this challenge I've used some tools:
+
+- WinHex for getting the file structure: 8GB looked like a lot of stuff, but looking it closely I could see that almost all the fuzz was going in the first 400kb block, and the last 400kb block of the disk. So I got the first offset and the last offset for starting the analisys.
+- First commented part of the program: I open the file on that specific offsets, generate the numbers and save the list (unsorted) in a file from my computer.
+- Later on, using Powershell, more specifically this command: Get-Content .\sample.txt | sort-object {[int] $_} > output.txt I sorted the content into an ordered list.
+- Finally, The second commented part of the program will detect the gaps in the numbers list, generating another list with the result.

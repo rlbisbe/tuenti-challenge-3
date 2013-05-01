@@ -1,0 +1,1 @@
+﻿For getting the list is easy, the next episodes are pushed to the back and the previous are inserted in the front. If the distance of 2 forward and backward is more than 2, I assume there are aditional options, so return valid. Otherwise, if a flashback is already a flashforward or a step scene, return invalid.
