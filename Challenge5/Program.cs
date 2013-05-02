@@ -7,12 +7,6 @@ using System.Threading.Tasks;
 
 namespace Challenge5
 {
-    class Piece
-    {
-        public Complex position { get; set; }
-        public int value { get; set; }
-    }
-
     class Program
     {
         static void Main(string[] args)
@@ -37,124 +31,63 @@ namespace Challenge5
                 if (!int.TryParse(sTime, out time))
                     continue;
 
-                Solve(initialPosition, time, board);
+                Solve(initialPosition, time, board, bounds, initialPosition);
             }
         }
 
-        private static void Solve(string position, int time, string coords)
+        private static void Solve(string position, int time, string coords, string bounds, string initialPosition)
         {
-            //Define the list and the board
-            int result = 0;
-            Complex currentPosition;
-            Complex previousPosition;
+            string[] sbounds = bounds.Split(',');
+            string[] scoords = initialPosition.Split(',');
+            int[,] board = new int[int.Parse(sbounds[0]), int.Parse(sbounds[1])];
+            bool[,] visited = new bool[int.Parse(sbounds[0]), int.Parse(sbounds[1])];
 
-            List<Piece> pieces = new List<Piece>();
             string[] positions = coords.Split('#');
             foreach (var item in positions)
             {
                 string[] parameters = item.Split(',');
-                pieces.Add(new Piece()
-                {
-                    position = new Complex(int.Parse(parameters[0]),
-                    int.Parse(parameters[1])),
-                    value = int.Parse(parameters[2]) 
-                });                
+                board[int.Parse(parameters[0]),
+                int.Parse(parameters[1])] = int.Parse(parameters[2]);
             }
 
-            string[] aposition = position.Split(',');
-            currentPosition = new Complex(int.Parse(aposition[0]), 
-                int.Parse(aposition[1]));
+            Console.WriteLine(FindResult(board, int.Parse(scoords[0]),
+                int.Parse(scoords[1]), time, visited));
 
-            //Console.WriteLine(currentPosition);
-            //Console.WriteLine(result);
+            //Console.ReadKey();
+        }
 
-            for (int i = 0; i < time; i++)
+        private static int FindResult(int[,] board, int x, int y, int time, bool[,] visited)
+        {
+            if (x >= board.GetLength(0) || x < 0)
+                return 0;
+
+            if (y >= board.GetLength(1) || y < 0)
+                return 0;
+            
+            if (visited[x, y])
+                return 0;
+    
+            if (time == 0)
+                return board[x, y];
+
+            visited = (bool[,])visited.Clone();
+            visited[x, y] = true;
+
+            int[] possibleResults = 
             {
-                int max = int.MinValue;
-                int maxFuture = int.MinValue;
-                
-                Piece next = null;
-                Piece future = null;
+                FindResult(board, x + 1, y, time - 1, visited),
+                FindResult(board, x, y + 1, time - 1, visited),
+                FindResult(board, x, y - 1, time - 1, visited),
+                FindResult(board, x - 1, y, time - 1, visited)
+            };
 
-                foreach (var item in pieces)
-                {
-                    Complex distance = item.position - currentPosition;
-                    double abs = Complex.Abs(distance);
-                    if (abs == 1)
-                    {
-                        if (item.value >= max)
-                        {
-                            max = item.value;
-                            next = item;
-                        }
-                        continue;
-                    }
-
-                    if (item.value >= maxFuture)
-                    {
-                        maxFuture = item.value;
-                        future = item;
-                    }
-                }
-
-                if (next != null)
-                {
-                    Complex move = next.position - currentPosition;
-                    previousPosition = currentPosition;
-                    currentPosition = currentPosition + move;
-                    result += next.value;
-                    pieces.Remove(next);
-                    //Console.WriteLine(currentPosition);
-                    //Console.WriteLine(result);
-                    continue;
-                }
-
-                if (future != null)
-                {
-                    Complex move = future.position - currentPosition;
-                    Complex c;
-                    double x;
-                    double y;
-                    x = move.Real / Math.Abs(move.Real);
-                    y = move.Imaginary / Math.Abs(move.Imaginary);
-
-                    if (Math.Abs(x) > 0)
-                        c = new Complex(x, 0);
-                    else
-                        c = new Complex(0, y);
-
-                    Complex newPosition = currentPosition + c;
-                    if (newPosition == currentPosition)
-                    {
-                        if (Math.Abs(c.Real) == 1)
-                        {
-                            c = new Complex(0, 1);
-                            newPosition = currentPosition + c;
-                            if (Complex.Abs((future.position - newPosition)) 
-                                > Complex.Abs(future.position - currentPosition))
-                            {
-                                c = new Complex(0, -1);
-                            }
-                        }
-                        else
-                        {
-                            c = new Complex(1, 0);
-                            newPosition = currentPosition + c;
-                            if (Complex.Abs((future.position - newPosition))
-                                > Complex.Abs(future.position - currentPosition))
-                            {
-                                c = new Complex(-1, 0);
-                            }
-                        }
-                    }
-
-                    previousPosition = currentPosition;
-                    currentPosition = currentPosition + c;
-                    //Console.WriteLine(currentPosition);
-                }
-            }
-
-            Console.WriteLine(result);
+            //Debug!
+            //for (int i = 0; i < time; i++)
+            //{
+            //    Console.Write(" ");
+            //}
+            //Console.WriteLine("pos {3}. {0} {1} - {2} {4}", x, y, board[x, y] + possibleResults.Max(), time,  board[x, y]);
+            return board[x, y] + possibleResults.Max();
         }
     }
 }
