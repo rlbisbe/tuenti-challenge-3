@@ -7,8 +7,34 @@ using System.Threading.Tasks;
 
 namespace Challenge6
 {
+    enum Visited : byte
+    {
+        none = 1,
+        left = 2,
+        right = 4,
+        top = 8,
+        down = 16,
+    }
+
     class Program
     {
+        static Visited GetFromCoordinates(int x, int y)
+        {
+            if (x == 1)
+                return Visited.right;
+
+            if (x == -1)
+                return Visited.left;
+
+            if (y == 1)
+                return Visited.top;
+
+            if (y == -1)
+                return Visited.down;
+
+            return Visited.none;
+        }
+
         static void Main(string[] args)
         {
             string total = Console.ReadLine();
@@ -31,9 +57,9 @@ namespace Challenge6
                 {
                     string originalMsg = Console.ReadLine();
                     byte[] utfBytes = iso.GetBytes(originalMsg);
-                    byte[] isoBytes = Encoding.Convert(iso,utf8,utfBytes);
+                    byte[] isoBytes = Encoding.Convert(iso, utf8, utfBytes);
                     string msg = utf8.GetString(isoBytes);
-                    board.Add(msg.Replace("TA","."));
+                    board.Add(msg.Replace("TA", "."));
                 }
 
                 Solve(key, board.ToArray());
@@ -48,7 +74,7 @@ namespace Challenge6
             int xpos = 0;
             int ypos = 0;
             char[,] board = new char[int.Parse(sHeader[1]), int.Parse(sHeader[0])];
-            bool[,] visited = new bool[int.Parse(sHeader[1]), int.Parse(sHeader[0])];
+            Visited[,] visited = new Visited[int.Parse(sHeader[1]), int.Parse(sHeader[0])];
 
             for (int i = 0; i < board.GetLength(0); i++)
             {
@@ -69,7 +95,7 @@ namespace Challenge6
             Console.WriteLine(Math.Round(FindResult(board, xpos, ypos, visited, 0, 0, totalTime, speed, reactionTime)));
         }
 
-        private static float FindResult(char[,] board, int x, int y, bool[,] visited, int xSlide, int ySlide, int time, float speed, int reactionTime)
+        private static float FindResult(char[,] board, int x, int y, Visited[,] visited, int xSlide, int ySlide, int time, float speed, int reactionTime)
         {
             if (x >= board.GetLength(0) || x < 0)
                 return float.MaxValue;
@@ -77,26 +103,41 @@ namespace Challenge6
             if (y >= board.GetLength(1) || y < 0)
                 return float.MaxValue;
 
-            if (visited[x, y])
+            Visited v = GetFromCoordinates(xSlide, ySlide);
+            if ((visited[x, y] & v) == v)
+            {
+#if DEBUG
+                for (int i = 0; i < time; i++)
+                {
+                    Console.Write(" ");
+                }
+                Console.WriteLine("(V) - {2} {0},{1} . - {3} {4} [{5}]", x, y, time, xSlide, ySlide, board[x, y]);
+#endif
                 return float.MaxValue;
+            }
 
             if (board[x, y] == '#')
                 return float.MaxValue;
 
             if (board[x, y] == 'O')
-                return 0f;
+            {
+#if DEBUG
+                Console.WriteLine("Found it! 0 ");
+#endif
+                return speed;
+            }
 
-            visited = (bool[,])visited.Clone();
-            visited[x, y] = true;
+            visited = (Visited[,])visited.Clone();
+            visited[x, y] = visited[x, y] | v;
 
             float result = 0;
 
-#if !DEBUG
+#if DEBUG
             for (int i = 0; i < time; i++)
             {
                 Console.Write(" ");
             }
-            Console.WriteLine("(B) - {2} {0},{1} . - {3} {4}", x, y, time, xSlide, ySlide);
+            Console.WriteLine("(B) - {2} {0},{1} . - {3} {4} [{5}]", x, y, time, xSlide, ySlide, board[x, y]);
 #endif
             int mul = 1;
             int newX = 0;
@@ -111,9 +152,9 @@ namespace Challenge6
                     newX = x + mul * xSlide;
                     newY = y + mul * ySlide;
 
-                    visited[newX, newY] = true;
-                    
-#if !DEBUG
+                    visited[newX, newY] = visited[newX, newY] | GetFromCoordinates(xSlide, ySlide);
+
+#if DEBUG
                     for (int i = 0; i < time; i++)
                     {
                         Console.Write(" ");
@@ -125,7 +166,7 @@ namespace Challenge6
 
                     if (board[newX, newY] == 'O')
                     {
-#if !DEBUG
+#if DEBUG
                         Console.WriteLine("Found it! {0} ", result);
 #endif
                         return result + speed;
@@ -143,7 +184,7 @@ namespace Challenge6
 
             //Debug!
             float sum = result;
-#if !DEBUG
+#if DEBUG
             Console.WriteLine(sum);
 #endif
             x = x + mul * xSlide;
@@ -157,13 +198,13 @@ namespace Challenge6
             float[] results = 
             {
                  FindResult(board, x + 1, y, visited, 1, 0, time + 1, speed, reactionTime),
-                 FindResult(board, x, y + 1, visited, 0, 1, time + 1, speed, reactionTime),
+                 FindResult(board, x - 1, y, visited, -1, 0, time + 1, speed, reactionTime),
                  FindResult(board, x, y - 1, visited, 0, -1, time + 1, speed, reactionTime),
-                 FindResult(board, x - 1, y, visited, -1, 0, time + 1, speed, reactionTime)
+                 FindResult(board, x, y + 1, visited, 0, 1, time + 1, speed, reactionTime),
             };
 
             float min = results.Min();
-#if !DEBUG
+#if DEBUG
             if (min < float.MaxValue)
             {
                 for (int i = 0; i < time; i++)
@@ -173,7 +214,7 @@ namespace Challenge6
                 Console.WriteLine("(E) - {2} {0},{1} . - {3} {4} [{5}]", x, y, time, xSlide, ySlide, sum + min);
             }
 #endif
-            return (float)Math.Round(sum + min);
+            return sum + min;
         }
     }
 }
