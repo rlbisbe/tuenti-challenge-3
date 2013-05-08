@@ -1,0 +1,3 @@
+﻿Ok, this was tricky, the first aproach was using the same than the previous challenge, without any luck, then how to find a path out was easy. The problem was to difference a path out and a wall, so it won't loop forever. A visited variable that was re-initialized solved the issue.
+
+The final problem happened when you had to re-visit a position, but with other direction. I had to find out how to use masks so I could see if my "visited" correspondend to the direction where I was coming from. Funny.

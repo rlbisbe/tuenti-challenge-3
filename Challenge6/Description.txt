@@ -1,1 +1,0 @@
-﻿After some experiment with graph theory, it turned out that it was easier using a recursive aproach. It checks that the output is correct and that the "visited" value has been set. The array gets copied so the values do not collapse.
